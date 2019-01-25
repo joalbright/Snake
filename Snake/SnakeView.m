@@ -25,17 +25,19 @@ typedef enum : NSUInteger {
 
 @property (nonatomic) NSMutableArray *segments;
 @property (nonatomic) SnakeDirection direction;
+@property (nonatomic) CGRect frame;
 
 @end
 
 @implementation Snake
 
-- (instancetype)initWithStart:(CGPoint)start andLength:(CGFloat)length
-{
+- (instancetype)initWithStart:(CGPoint)start andLength:(CGFloat)length inFrame:(CGRect)frame {
+
     self = [super init];
     if (self) {
 
         _segments = [@[] mutableCopy];
+        _frame = frame;
 
         for (CGFloat i = 0; i < length; i++) {
 
@@ -94,10 +96,10 @@ typedef enum : NSUInteger {
                     break;
             }
 
-            if (point.x < 0) { point.x = [NSScreen mainScreen].frame.size.width; }
-            if (point.x > [NSScreen mainScreen].frame.size.width) { point.x = 0; }
-            if (point.y < 0) { point.y = [NSScreen mainScreen].frame.size.height; }
-            if (point.y > [NSScreen mainScreen].frame.size.height) { point.y = 0; }
+            if (point.x < 0) { point.x = self.frame.size.width; }
+            if (point.x > self.frame.size.width) { point.x = 0; }
+            if (point.y < 0) { point.y = self.frame.size.height; }
+            if (point.y > self.frame.size.height) { point.y = 0; }
 
             self.segments[count] = [NSValue valueWithPoint:point];
 
@@ -132,12 +134,22 @@ typedef enum : NSUInteger {
 
         _snakes = [@[] mutableCopy];
 
-        CGFloat midY = [NSScreen mainScreen].frame.size.height / 2;
+        CGFloat spacing = 40;
+
+        if (isPreview) {
+
+            count = 5;
+            speed = 1;
+            spacing = 10;
+
+        }
+
+        CGFloat midY = frame.size.height / 2;
         CGFloat median = floor(count / 2);
 
         for (CGFloat i = 0; i < count; i++) {
 
-            [_snakes addObject:[[Snake alloc] initWithStart:CGPointMake(0, midY + (i - median) * 40) andLength:arc4random_uniform(50) + 50]];
+            [_snakes addObject:[[Snake alloc] initWithStart:CGPointMake(0, midY + (i - median) * spacing) andLength:arc4random_uniform(50) + 50 inFrame:frame]];
 
         }
 
@@ -145,18 +157,11 @@ typedef enum : NSUInteger {
     return self;
 }
 
-- (void)startAnimation
-{
-    [super startAnimation];
-}
+- (void)startAnimation { [super startAnimation]; }
 
-- (void)stopAnimation
-{
-    [super stopAnimation];
-}
+- (void)stopAnimation { [super stopAnimation]; }
 
-- (void)drawRect:(NSRect)rect
-{
+- (void)drawRect:(NSRect)rect {
     [super drawRect:rect];
 
     CGContextRef context = [NSGraphicsContext currentContext].CGContext;
@@ -182,8 +187,8 @@ typedef enum : NSUInteger {
 
 }
 
-- (void)animateOneFrame
-{
+- (void)animateOneFrame {
+
     for (Snake *snake in self.snakes) {
 
         BOOL change = arc4random_uniform(60) == 30;
@@ -194,16 +199,11 @@ typedef enum : NSUInteger {
 
     [self setNeedsDisplay:YES];
     return;
+
 }
 
-- (BOOL)hasConfigureSheet
-{
-    return NO;
-}
+- (BOOL)hasConfigureSheet { return NO; }
 
-- (NSWindow*)configureSheet
-{
-    return nil;
-}
+- (NSWindow*)configureSheet { return nil; }
 
 @end
